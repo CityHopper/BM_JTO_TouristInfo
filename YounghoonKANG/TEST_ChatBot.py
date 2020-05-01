@@ -8,7 +8,7 @@ chatbot = ChatBot('Charlie')
 trainer = ChatterBotCorpusTrainer(chatbot)
 
 trainer.train(
- "chatterbot.corpus.english"
+ "chatterbot.corpus.korean"
 )
 
 # The following loop will execute each time the user enters input
