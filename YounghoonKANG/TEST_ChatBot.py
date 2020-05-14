@@ -1,17 +1,45 @@
-from chatterbot import ChatBot
+import chatterbot
+from chatterbot import ChatBot, comparisons, response_selection
 from chatterbot.trainers import ListTrainer
 from chatterbot.trainers import ChatterBotCorpusTrainer
 
-# Create a new chat bot named Charlie
-chatbot = ChatBot('Charlie')
-# Create a new Trainer
-trainer = ChatterBotCorpusTrainer(chatbot)
-
-trainer.train(
- "chatterbot.corpus.korean"
+chatbot = ChatBot(
+    'robot',
+    storage_adapter='chatterbot.storage.SQLStorageAdapter',
+    preprocessors=[
+        'chatterbot.preprocessors.clean_whitespace',
+    ],
+    logic_adapters=[
+        {
+            'import_path': 'chatterbot.logic.BestMatch',
+            'default_response': 'I am sorry, but I do not understand.',
+            'maximum_similarity_threshold': 0.90,
+            'statement_comparison_function': comparisons.levenshtein_distance,
+            'response_selection_method': response_selection.get_first_response
+        },
+        'chatterbot.logic.MathematicalEvaluation'
+    ],
+    database_uri='sqlite:///database.db',
+    read_only=True
 )
 
+
+## training corpus list
+## Disable these two lines below AFTER first run when a *.db file is generated in project directory
+# trainer = ChatterBotCorpusTrainer(bot)
+# trainer.train("chatterbot.corpus.korean")
+
+# # Create a new chat bot named Charlie
+# chatbot = ChatBot('Charlie')
+# # Create a new Trainer
+# trainer = ChatterBotCorpusTrainer(chatbot)
+#
+# trainer.train(
+#  "chatterbot.corpus.korean"
+# )
+#
 # The following loop will execute each time the user enters input
+
 while True:
     try:
         user_input = input()
@@ -21,6 +49,11 @@ while True:
 # Press ctrl-c or ctrl-d on the keyboard to exit
     except (KeyboardInterrupt, EOFError, SystemExit):
         break
+
+
+# Pickle에 모델 저장하는 법
+# https://stackoverflow.com/questions/60213258/how-to-save-chatbot-model-using-pickle
+
 
 # conversation = [
 #     "Hello",
