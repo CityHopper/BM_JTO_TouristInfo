@@ -130,3 +130,6 @@ dmypy.json
 
 # add new
 .idea/
+config.ini
+data_out/check_point/
+*.ipynb
