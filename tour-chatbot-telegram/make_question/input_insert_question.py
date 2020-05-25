@@ -1,5 +1,20 @@
+"""
+input_insert_question.py
+
+질문 입력 프로그램(base)
+- 질문을 입력하면 base_question테이블에 입력된다.
+- 예) @는 어디인가요?/ad (@:관광지명, /:질문text-질문구분코드 구분자, 영문2자:질문구분코드)
+- 여기서 만들어진 질문이 관광지 데이터와 합쳐져서 관광지별 질문을 생성할 것이다.
+"""
 import pymysql
 import pandas as pd
+from pyautogui import typewrite
+from configparser import ConfigParser
+
+# 설정파일 로드(/config.ini)
+conf = ConfigParser()
+conf.read("./../config.ini")
+db_conf = conf["DB"] # 데이터베이스 정보 불러오기
 
 # database 연결 객체
 DB_CONN = None
@@ -8,11 +23,11 @@ DB_CONN = None
 # database 연결
 def connect_db():
     global DB_CONN
-    DB_CONN = pymysql.connect(host='127.0.0.1',
-                              user='in_question',
-                              port=3306,
-                              password='1234',  # database 접속 비밀번호
-                              db='jtodb',
+    DB_CONN = pymysql.connect(host=db_conf["HOST"],
+                              port=int(db_conf["PORT"]),
+                              user=db_conf["USER"],
+                              password=db_conf["PASSWORD"],
+                              db=db_conf["DB_NAME"],
                               charset='utf8mb4',
                               use_unicode=True,
                               cursorclass=pymysql.cursors.DictCursor)
@@ -73,20 +88,26 @@ try:
         code_list.append(item["code"])
 
     cnt = 0  # 입력한 질문개수
+    before_question_txt = ""
 
     while True:
-        input_question = input("(종료:Q(q)) >> ")
-        print("\n")
+        #input_question = input("(종료:Q(q)) >> ", )
+        print("종료:Q(q) >> ")
+        typewrite(before_question_txt)
+        input_question = input()
+        print()
 
         if input_question.upper() == "Q":
             break
 
         if "@" not in input_question:
             print("@를 포함해서 입력하세여")
+            before_question_txt = input_question
             continue
 
         if "/" not in input_question:
             print("/를 포함해서 질문구분코드값을 입력하세여")
+            before_question_txt = input_question
             continue
 
         question_data = input_question.split("/")
@@ -95,19 +116,27 @@ try:
 
         if question_txt == "" or question_sep_code == "":
             print("질문(@포함)이나 질문구분코드값(영문2자)을 입력안했어여. 다시 입력해주세여~")
+            before_question_txt = input_question
             continue
 
         if question_sep_code.upper() not in code_list:
             print("질문구분코드값이 존재하지않아여. 표를 보고 다시 입력해주세여~")
+            before_question_txt = input_question
             print(code_df, end="\n\n")
             continue
 
         if retrieve_dup_question(question_txt):
             print("중복된 질문이 있어여. 다른 질문 입력해주세여!")
+            before_question_txt = question_txt
             continue
 
         in_data = {"q_text": question_txt, "q_sep_code": question_sep_code.upper()}  # insert 할 데이터
-        cnt += insert_question_data(in_data)  # insert
+        new_insert_cnt = insert_question_data(in_data)  # 질문 insert
+
+        # 신규 입력 건이 존재할 경우
+        if new_insert_cnt > 0:
+            cnt += new_insert_cnt
+            before_question_txt = ""
 
     print("신규 입력한 질문개수 :", cnt)
 
