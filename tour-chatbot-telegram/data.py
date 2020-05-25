@@ -8,7 +8,14 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 from configs import DEFINES
 
+import pymysql
+from configparser import ConfigParser
+
 from tqdm import tqdm
+
+# 설정파일 로드(/config.ini)
+conf = ConfigParser()
+conf.read("./config.ini")
 
 FILTERS = "([~.,!?\"':;)(])"
 PAD = "<PAD>"
@@ -25,17 +32,68 @@ MARKER = [PAD, STD, END, UNK]
 CHANGE_FILTER = re.compile(FILTERS)
 
 
+def connect_db():
+    db_conf = conf["DB"]  # 데이터베이스 정보 불러오기
+    conn = pymysql.connect(host=db_conf["HOST"],
+                           port=int(db_conf["PORT"]),
+                           user=db_conf["USER"],
+                           password=db_conf["PASSWORD"],
+                           db=db_conf["DB_NAME"],
+                           charset='utf8mb4',
+                           use_unicode=True,
+                           cursorclass=pymysql.cursors.DictCursor)
+
+    return conn
+
+
+def retrieve_question_list(conn):
+    with conn.cursor() as cur:
+        sql = "SELECT q.q_text AS Q, concat(q.q_sep_code, '/', q.title) AS A FROM question q"
+        cur.execute(sql)
+
+    result = cur.fetchall()
+
+    return result
+
+
 def load_data():
-    # 판다스를 통해서 데이터를 불러온다.
-    data_df = pd.read_csv(DEFINES.data_path, header=0)
-    # 질문과 답변 열을 가져와 question과 answer에 넣는다.
-    question, answer = list(data_df['Q']), list(data_df['A'])
-    # skleran에서 지원하는 함수를 통해서 학습 셋과
-    # 테스트 셋을 나눈다.
-    train_input, eval_input, train_label, eval_label = train_test_split(question, answer, test_size=0.33,
-                                                                        random_state=42)
-    # 그 값을 리턴한다.
-    return train_input, train_label, eval_input, eval_label
+    conn = connect_db()
+
+    try:
+        question_list = retrieve_question_list(conn)
+        print("질문개수 :", len(question_list))
+
+        question = []
+        answer = []
+
+        for item in question_list:
+            print(item)
+            question.append(item["Q"])
+            answer.append(item["A"])
+
+        # skleran에서 지원하는 함수를 통해서 학습 셋과
+        # 테스트 셋을 나눈다.
+        train_input, eval_input, train_label, eval_label = train_test_split(question, answer, test_size=0.33,
+                                                                            random_state=42)
+        # 그 값을 리턴한다.
+        return train_input, train_label, eval_input, eval_label
+
+    finally:
+        conn.close()
+        print("db close")
+
+
+# def load_data_old():
+#     # 판다스를 통해서 데이터를 불러온다.
+#     data_df = pd.read_csv(DEFINES.data_path, header=0)
+#     # 질문과 답변 열을 가져와 question과 answer에 넣는다.
+#     question, answer = list(data_df['Q']), list(data_df['A'])
+#     # skleran에서 지원하는 함수를 통해서 학습 셋과
+#     # 테스트 셋을 나눈다.
+#     train_input, eval_input, train_label, eval_label = train_test_split(question, answer, test_size=0.33,
+#                                                                         random_state=42)
+#     # 그 값을 리턴한다.
+#     return train_input, train_label, eval_input, eval_label
 
 
 def prepro_like_morphlized(data):
@@ -332,37 +390,59 @@ def load_vocabulary():
         # 이미 생성된 사전 파일이 존재하지 않으므로
         # 데이터를 가지고 만들어야 한다.
         # 그래서 데이터가 존재 하면 사전을 만들기 위해서
+        # db에서 모든 질문 데이터 불러오기(NEW)
+        conn = connect_db()
+
+        question = []
+        answer = []
+
+        try:
+            question_list = retrieve_question_list(conn)
+            print("질문개수 :", len(question_list))
+
+            for item in question_list:
+                question.append(item["Q"])
+                answer.append(item["A"])
+
+        finally:
+            conn.close()
+            print("db close")
+
+        # OLD [START]
         # 데이터 파일의 존재 유무를 확인한다.
-        if (os.path.exists(DEFINES.data_path)):
-            # 데이터가 존재하니 판단스를 통해서
-            # 데이터를 불러오자
-            data_df = pd.read_csv(DEFINES.data_path, encoding='utf-8')
-            # 판다스의 데이터 프레임을 통해서
-            # 질문과 답에 대한 열을 가져 온다.
-            question, answer = list(data_df['Q']), list(data_df['A'])
-            if DEFINES.tokenize_as_morph:  # 형태소에 따른 토크나이져 처리
-                question = prepro_like_morphlized(question)
-                answer = prepro_like_morphlized(answer)
-            data = []
-            # 질문과 답변을 extend을
-            # 통해서 구조가 없는 배열로 만든다.
-            data.extend(question)
-            data.extend(answer)
-            # 토큰나이져 처리 하는 부분이다.
-            words = data_tokenizer(data)
-            # 공통적인 단어에 대해서는 모두
-            # 필요 없으므로 한개로 만들어 주기 위해서
-            # set해주고 이것들을 리스트로 만들어 준다.
-            words = list(set(words))
-            # 데이터 없는 내용중에 MARKER를 사전에
-            # 추가 하기 위해서 아래와 같이 처리 한다.
-            # 아래는 MARKER 값이며 리스트의 첫번째 부터
-            # 순서대로 넣기 위해서 인덱스 0에 추가한다.
-            # PAD = "<PADDING>"
-            # STD = "<START>"
-            # END = "<END>"
-            # UNK = "<UNKNWON>"
-            words[:0] = MARKER
+        # if (os.path.exists(DEFINES.data_path)):
+        #   # 데이터가 존재하니 판단스를 통해서
+        #   # 데이터를 불러오자
+        #   data_df = pd.read_csv(DEFINES.data_path, encoding='utf-8')
+        #   # 판다스의 데이터 프레임을 통해서
+        #   # 질문과 답에 대한 열을 가져 온다.
+        #   # question, answer = list(data_df['Q']), list(data_df['A'])
+        # OLD [END]
+
+        if DEFINES.tokenize_as_morph:  # 형태소에 따른 토크나이져 처리
+            question = prepro_like_morphlized(question)
+            answer = prepro_like_morphlized(answer)
+        data = []
+        # 질문과 답변을 extend을
+        # 통해서 구조가 없는 배열로 만든다.
+        data.extend(question)
+        data.extend(answer)
+        # 토큰나이져 처리 하는 부분이다.
+        words = data_tokenizer(data)
+        # 공통적인 단어에 대해서는 모두
+        # 필요 없으므로 한개로 만들어 주기 위해서
+        # set해주고 이것들을 리스트로 만들어 준다.
+        words = list(set(words))
+        # 데이터 없는 내용중에 MARKER를 사전에
+        # 추가 하기 위해서 아래와 같이 처리 한다.
+        # 아래는 MARKER 값이며 리스트의 첫번째 부터
+        # 순서대로 넣기 위해서 인덱스 0에 추가한다.
+        # PAD = "<PADDING>"
+        # STD = "<START>"
+        # END = "<END>"
+        # UNK = "<UNKNWON>"
+        words[:0] = MARKER
+
         # 사전을 리스트로 만들었으니 이 내용을
         # 사전 파일을 만들어 넣는다.
         with open(DEFINES.vocabulary_path, 'w', encoding='utf-8') as vocabulary_file:
