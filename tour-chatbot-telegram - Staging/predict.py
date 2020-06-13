@@ -3,7 +3,6 @@ import data
 import os
 import sys
 import model as ml
-
 from configs import DEFINES
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'

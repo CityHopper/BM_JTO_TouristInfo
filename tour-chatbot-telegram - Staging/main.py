@@ -5,7 +5,7 @@ from configs import DEFINES
 from telegram.ext import Updater, MessageHandler, CommandHandler, Filters, CallbackQueryHandler
 from configparser import ConfigParser
 import pymysql
-
+import weather_api, locbased_attrac
 
 # 설정파일 로드(/config.ini)
 conf = ConfigParser()
@@ -106,7 +106,7 @@ def call_start_command(message):
     user_name = message.chat.last_name + " " + message.chat.first_name
     print(user_name + "님 새로운 대화 시작")
 
-    return {"text" : user_name + "님 안녕하세요.\n대화창에 질문을 입력해주세요."}
+    return {"text" : user_name + "님 안녕하세요.\n대화창에 관광지 질문을 입력해주세요."}
 
 # command 메시지 callback
 def get_command_callback_handler(bot, update):
