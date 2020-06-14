@@ -133,3 +133,16 @@ dmypy.json
 config.ini
 data_out/check_point/
 *.ipynb
+tour-chatbot-telegram - Staging/data_out/check_point/model.ckpt-20000.meta
+tour-chatbot-telegram - Staging/data_out/check_point/model.ckpt-20000.index
+tour-chatbot-telegram - Staging/data_out/check_point/model.ckpt-20000.data-00000-of-00001
+tour-chatbot-telegram - Staging/data_out/check_point/model.ckpt-15309.meta
+tour-chatbot-telegram - Staging/data_out/check_point/model.ckpt-15309.index
+tour-chatbot-telegram - Staging/data_out/check_point/model.ckpt-15309.data-00000-of-00001
+tour-chatbot-telegram - Staging/data_out/check_point/model.ckpt-0.meta
+tour-chatbot-telegram - Staging/data_out/check_point/model.ckpt-0.index
+tour-chatbot-telegram - Staging/data_out/check_point/model.ckpt-0.data-00000-of-00001
+tour-chatbot-telegram - Staging/data_out/check_point/eval/events.out.tfevents.1592046415.DESKTOP-8BOM48D
+tour-chatbot-telegram - Staging/data_out/check_point/events.out.tfevents.1592045561.DESKTOP-8BOM48D
+tour-chatbot-telegram - Staging/data_out/check_point/graph.pbtxt
+tour-chatbot-telegram - Staging/data_out/check_point/checkpoint

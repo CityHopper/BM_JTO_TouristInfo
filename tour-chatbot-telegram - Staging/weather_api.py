@@ -41,7 +41,6 @@ def weather_today():
             hour -= 1
             continue
 
-
 weather_today()
 
 '''

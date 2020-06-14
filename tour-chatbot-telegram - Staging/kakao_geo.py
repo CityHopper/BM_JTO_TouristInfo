@@ -1,4 +1,5 @@
 import requests
+# https://developers.kakao.com/docs/latest/ko/local/dev-guide#search-by-keyword
 
 MYAPP_KEY = 'efc49d30d1ce74b230d8735843f48b59'
 
