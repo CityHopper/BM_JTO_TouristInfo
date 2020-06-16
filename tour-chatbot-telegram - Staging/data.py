@@ -1,17 +1,15 @@
 from konlpy.tag import Twitter
-import pandas as pd
 import tensorflow as tf
-import enum
 import os
 import re
 from sklearn.model_selection import train_test_split
 import numpy as np
 from configs import DEFINES
-
-import pymysql
+from tqdm import tqdm
 from configparser import ConfigParser
 
-from tqdm import tqdm
+import chatbot_database
+
 
 # 설정파일 로드(/config.ini)
 conf = ConfigParser()
@@ -32,68 +30,24 @@ MARKER = [PAD, STD, END, UNK]
 CHANGE_FILTER = re.compile(FILTERS)
 
 
-def connect_db():
-    db_conf = conf["DB"]  # 데이터베이스 정보 불러오기
-    conn = pymysql.connect(host=db_conf["HOST"],
-                           port=int(db_conf["PORT"]),
-                           user=db_conf["USER"],
-                           password=db_conf["PASSWORD"],
-                           db=db_conf["DB_NAME"],
-                           charset='utf8mb4',
-                           use_unicode=True,
-                           cursorclass=pymysql.cursors.DictCursor)
-
-    return conn
-
-
-def retrieve_question_list(conn):
-    with conn.cursor() as cur:
-        sql = "SELECT q.q_text AS Q, concat(q.q_sep_code, '/', q.title) AS A FROM question q"
-        cur.execute(sql)
-
-    result = cur.fetchall()
-
-    return result
-
-
 def load_data():
-    conn = connect_db()
+    question_list = chatbot_database.retrieve_all_question_list()
+    print("질문개수 :", len(question_list))
 
-    try:
-        question_list = retrieve_question_list(conn)
-        print("질문개수 :", len(question_list))
+    question = []
+    answer = []
 
-        question = []
-        answer = []
+    for item in question_list:
+        print(item)
+        question.append(item["Q"])
+        answer.append(item["A"])
 
-        for item in question_list:
-            print(item)
-            question.append(item["Q"])
-            answer.append(item["A"])
+    # skleran에서 지원하는 함수를 통해서 학습 셋과
+    # 테스트 셋을 나눈다.
+    train_input, eval_input, train_label, eval_label = train_test_split(question, answer, test_size=0.33, random_state=42, stratify=answer)
 
-        # skleran에서 지원하는 함수를 통해서 학습 셋과
-        # 테스트 셋을 나눈다.
-        train_input, eval_input, train_label, eval_label = train_test_split(question, answer, test_size=0.33,
-                                                                            random_state=42)
-        # 그 값을 리턴한다.
-        return train_input, train_label, eval_input, eval_label
-
-    finally:
-        conn.close()
-        print("db close")
-
-
-# def load_data_old():
-#     # 판다스를 통해서 데이터를 불러온다.
-#     data_df = pd.read_csv(DEFINES.data_path, header=0)
-#     # 질문과 답변 열을 가져와 question과 answer에 넣는다.
-#     question, answer = list(data_df['Q']), list(data_df['A'])
-#     # skleran에서 지원하는 함수를 통해서 학습 셋과
-#     # 테스트 셋을 나눈다.
-#     train_input, eval_input, train_label, eval_label = train_test_split(question, answer, test_size=0.33,
-#                                                                         random_state=42)
-#     # 그 값을 리턴한다.
-#     return train_input, train_label, eval_input, eval_label
+    # 그 값을 리턴한다.
+    return train_input, train_label, eval_input, eval_label
 
 
 def prepro_like_morphlized(data):
@@ -391,33 +345,15 @@ def load_vocabulary():
         # 데이터를 가지고 만들어야 한다.
         # 그래서 데이터가 존재 하면 사전을 만들기 위해서
         # db에서 모든 질문 데이터 불러오기(NEW)
-        conn = connect_db()
-
         question = []
         answer = []
 
-        try:
-            question_list = retrieve_question_list(conn)
-            print("질문개수 :", len(question_list))
+        question_list = chatbot_database.retrieve_all_question_list()
+        print("질문개수 :", len(question_list))
 
-            for item in question_list:
-                question.append(item["Q"])
-                answer.append(item["A"])
-
-        finally:
-            conn.close()
-            print("db close")
-
-        # OLD [START]
-        # 데이터 파일의 존재 유무를 확인한다.
-        # if (os.path.exists(DEFINES.data_path)):
-        #   # 데이터가 존재하니 판단스를 통해서
-        #   # 데이터를 불러오자
-        #   data_df = pd.read_csv(DEFINES.data_path, encoding='utf-8')
-        #   # 판다스의 데이터 프레임을 통해서
-        #   # 질문과 답에 대한 열을 가져 온다.
-        #   # question, answer = list(data_df['Q']), list(data_df['A'])
-        # OLD [END]
+        for item in question_list:
+            question.append(item["Q"])
+            answer.append(item["A"])
 
         if DEFINES.tokenize_as_morph:  # 형태소에 따른 토크나이져 처리
             question = prepro_like_morphlized(question)
@@ -474,10 +410,9 @@ def make_vocabulary(vocabulary_list):
     return char2idx, idx2char
 
 
-def main(self):
-    char2idx, idx2char, vocabulary_length = load_vocabulary()
+#def main(self):
+#    char2idx, idx2char, vocabulary_length = load_vocabulary()
 
-
-if __name__ == '__main__':
-    tf.logging.set_verbosity(tf.logging.INFO)
-    tf.app.run(main)
+#if __name__ == '__main__':
+#    tf.logging.set_verbosity(tf.logging.INFO)
+#    tf.app.run(main)

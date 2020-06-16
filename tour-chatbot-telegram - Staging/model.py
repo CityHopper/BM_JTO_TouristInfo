@@ -1,4 +1,8 @@
-# -*- coding: utf-8 -*-
+"""
+model.py
+
+모델
+"""
 import tensorflow as tf
 import sys
 

@@ -1,7 +1,12 @@
+"""
+predict.py
+
+모델 예측 테스트용 프로그램
+- 이것만 단독실행하여 테스트한다.
+"""
 import tensorflow as tf
 import data
 import os
-import sys
 import model as ml
 from configs import DEFINES
 
@@ -13,12 +18,6 @@ if __name__ == '__main__':
     # 데이터를 통한 사전 구성 한다.
     char2idx, idx2char, vocabulary_length = data.load_vocabulary()
 
-    # 테스트용 데이터 만드는 부분이다.
-    # 인코딩 부분 만든다.
-    input = input()
-    print("Q :", input)
-
-    predic_input_enc, predic_input_enc_length = data.enc_processing([input], char2idx)
     # 학습 과정이 아니므로 디코딩 입력은
     # 존재하지 않는다.(구조를 맞추기 위해 넣는다.)
     predic_output_dec, predic_output_dec_length = data.dec_output_processing([""], char2idx)
@@ -42,12 +41,31 @@ if __name__ == '__main__':
             'xavier_initializer': DEFINES.xavier_initializer
         })
 
-    # 예측을 하는 부분이다.
-    predictions = classifier.predict(input_fn=lambda: data.eval_input_fn(predic_input_enc, predic_output_dec, predic_target_dec, 1))
+    # 테스트용 데이터 만드는 부분이다.
 
-    answer, finished = data.pred_next_string(predictions, idx2char)
+    while True:
+        test_question = input()
 
-    # 예측한 값을 인지 할 수 있도록
-    # 텍스트로 변경하는 부분이다.
-    print("answer: ", answer)
-    print("finished: ", finished)
+        if test_question == "q":
+            break
+
+        print("Question :", test_question)
+
+        # 인코딩 부분 만든다.
+        predic_input_enc, predic_input_enc_length = data.enc_processing([test_question], char2idx)
+        # # 학습 과정이 아니므로 디코딩 입력은
+        # # 존재하지 않는다.(구조를 맞추기 위해 넣는다.)
+        # predic_output_dec, predic_output_dec_length = data.dec_output_processing([""], char2idx)
+        # # 학습 과정이 아니므로 디코딩 출력 부분도
+        # # 존재하지 않는다.(구조를 맞추기 위해 넣는다.)
+        # predic_target_dec = data.dec_target_processing([""], char2idx)
+
+        # 예측을 하는 부분이다.
+        predictions = classifier.predict(input_fn=lambda: data.eval_input_fn(predic_input_enc, predic_output_dec, predic_target_dec, 1))
+
+        answer, finished = data.pred_next_string(predictions, idx2char)
+
+        # 예측한 값을 인지 할 수 있도록
+        # 텍스트로 변경하는 부분이다.
+        print("answer: ", answer)
+        print("finished: ", finished)

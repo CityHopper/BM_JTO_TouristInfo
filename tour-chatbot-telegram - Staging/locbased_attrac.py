@@ -1,10 +1,11 @@
 # 위치 기반 관광지 추천 XML -
 import requests
 from xml.etree.ElementTree import fromstring
-from kakao_geo import getlonlat
+#from kakao_geo import getlonlat
 
-lon, lat = getlonlat("제주시청")
+#lon, lat = getlonlat("제주시청")
 
+# 위도, 경도 값의 반경 10km의 관광지 목록 조회
 def attraction_by_lonlat(lon, lat):
 
     url = 'http://api.visitkorea.or.kr/openapi/service/rest/KorService/locationBasedList?'
@@ -18,7 +19,7 @@ def attraction_by_lonlat(lon, lat):
         'contentTypeId': '12',
         'mapX': lon,
         'mapY': lat,
-        'radius': '10000', # 2000 = 반경 20km
+        'radius': '1000', # 반경 10km
         'listYN': 'Y',
         'modifiedtime': ''
     }
@@ -38,7 +39,8 @@ def attraction_by_lonlat(lon, lat):
     if len(recommended_attraction) >= howmany:
         recommended_attraction = recommended_attraction[0:howmany]
     elif len(recommended_attraction) == 0:
-        recommended_attraction = "반경 내 추천 관광지가 없습니다."
+        recommended_attraction = None
+
     return recommended_attraction # 리스트 안의 리스트로 관광지 이름과 주소 반환
 
-print(attraction_by_lonlat(lon, lat))
+#print(attraction_by_lonlat(lon, lat))

@@ -86,30 +86,35 @@ try:
     for base in base_question_list:
         org_question_text = base["q_text"]
 
-        for place in place_list:
-            place_question_list = []
+        if "@" not in org_question_text:
+            insert_question_list([base])
+            cnt += 1
 
-            base_cp = base.copy()
-            base_cp["content_id"] = place["content_id"]
+        else:
+            for place in place_list:
+                place_question_list = []
 
-            if place["title1"] != "":
-                base_cp["title"] = place["title1"]
-                base_cp["q_text"] = org_question_text.replace("@", place["title1"])
+                base_cp = base.copy()
+                base_cp["content_id"] = place["content_id"]
 
-                place_question_list.append(base_cp)
+                if place["title1"]:
+                    base_cp["title"] = place["title1"]
+                    base_cp["q_text"] = org_question_text.replace("@", place["title1"])
 
-            if place["title2"] != "":
-                base_cp2 = base_cp.copy()
-                base_cp2["title"] = place["title2"]
-                base_cp2["q_text"] = org_question_text.replace("@", place["title2"])
+                    place_question_list.append(base_cp)
 
-                place_question_list.append(base_cp2)
+                if place["title2"]:
+                    base_cp2 = base_cp.copy()
+                    base_cp2["title"] = place["title2"]
+                    base_cp2["q_text"] = org_question_text.replace("@", place["title2"])
 
-            new_cnt = insert_question_list(place_question_list)
+                    place_question_list.append(base_cp2)
 
-            # 신규 입력 건이 있을 경우
-            if new_cnt > 0:
-                cnt += new_cnt
+                new_cnt = insert_question_list(place_question_list)
+
+                # 신규 입력 건이 있을 경우
+                if new_cnt > 0:
+                    cnt += new_cnt
 
     print("생성된 질문개수 :", cnt)
 
