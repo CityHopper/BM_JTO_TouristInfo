@@ -6,6 +6,7 @@ tour_place X base_question -> question테이블
 """
 import pymysql
 from configparser import ConfigParser
+from tqdm import tqdm
 
 # 설정파일 로드(/config.ini)
 conf = ConfigParser()
@@ -40,8 +41,8 @@ def insert_question_list(question_list):
         sql = "INSERT INTO question({}) VALUES ({})".format(", ".join(question_list[0].keys()), ", ".join(["%s"] * len(question_list[0])))
         result_cnt = cur.executemany(sql, insert_list)
 
-        print(" * sql >> ", sql)
-        print(" * data >> \n", insert_list)
+     #   print(" * sql >> ", sql)
+     #   print(" * data >> \n", insert_list)
 
     DB_CONN.commit()
 
@@ -83,7 +84,7 @@ try:
 
     cnt = 0  # 생성된 질문개수
 
-    for base in base_question_list:
+    for base in tqdm(base_question_list):
         org_question_text = base["q_text"]
 
         if "@" not in org_question_text:

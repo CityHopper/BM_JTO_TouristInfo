@@ -104,19 +104,33 @@ def get_text_message(message):
     txt_message = message.text
     result = ""
 
-    # word_in_RC = ["근처", "가까운", "가까이", "옆에", "주위"]
-    #
-    # for word in word_in_RC:
-    #     if word in txt_message:
-    #         place_name = txt_message.split(word)[0].strip()
-    #         result = "RC/" + place_name
+    word_in_RC = ["근처", "가까운", "가까이", "옆에", "주위"]
 
-    # if result == "":
-    # 질문에서 관광지명, 질문키워드(분류) 예측
-    predict_input_enc, predict_input_enc_length = data.enc_processing([txt_message], char2idx)
+    for word in word_in_RC:
+        if word in txt_message.replace(" ", ""):
+            place_name = txt_message.split(word)[0].strip()
+            result = "RC " + place_name
 
-    predictions = classifier.predict(input_fn=lambda: data.eval_input_fn(predict_input_enc, predict_output_dec, predict_target_dec, 1))
-    result, finished = data.pred_next_string(predictions, idx2char)
+    if not result:
+        word_in_weather = ["날씨", "더워", "추워", "더운", "추운", "습한", "습해", "찜찜", "비내", "비오", "비와", "비가", "눈내", "눈와", "눈오", "눈이", "기상"]  # 날씨 관련 질문 공통단어
+        word_in_WR = ["추천", "어디", "관광지", "볼거리", "관광", "볼거", "구경", "관람", "체험", "갈데", "곳", "장소", "명소", "유명"]
+
+        for word in word_in_weather:
+            if word in txt_message.replace(" ", ""):
+                txt_weather_messsge = txt_message.replace(" ", "")
+
+                result = "WT"
+
+                for word2 in word_in_WR:
+                    if word2 in txt_weather_messsge:
+                        result = "WR"
+
+    if not result:
+        # 질문에서 관광지명, 질문키워드(분류) 예측
+        predict_input_enc, predict_input_enc_length = data.enc_processing([txt_message], char2idx)
+
+        predictions = classifier.predict(input_fn=lambda: data.eval_input_fn(predict_input_enc, predict_output_dec, predict_target_dec, 1))
+        result, finished = data.pred_next_string(predictions, idx2char)
 
     print("result :", result)
 
@@ -124,7 +138,7 @@ def get_text_message(message):
     try:
         result_sep = result.split(" ")
         answer_key = result_sep[0].strip() # 질문키워드
-        answer_place_name = result_sep[1].strip() # 관광지명
+        answer_place_name = result_sep[1].strip() if len(result_sep) > 1 else "" # 관광지명
 
         # 날씨 정보 답변
         if answer_key == "WT":

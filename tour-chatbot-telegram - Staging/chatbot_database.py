@@ -99,7 +99,7 @@ def retrieve_place_info(q_place_name, q_keyword):
     rel_cols = retrieve_one(sql_rel_cols)
     
     # 질문 키워드에 해당하는 관광지 정보 조회
-    sql_info = "SELECT {cols} " \
+    sql_info = "SELECT org_title, {cols} " \
                "  FROM tour_place " \
                " WHERE org_title LIKE REPLACE('%{place_name}%', ' ', '') " \
                "    OR title1 LIKE REPLACE('%{place_name}%', ' ', '') " \
@@ -108,7 +108,7 @@ def retrieve_place_info(q_place_name, q_keyword):
     result_info = retrieve_one(sql_info)
 
     # 데이터 중 None -> ""(null) 변환(나중에 string으로 사용하게 되므로 미리 변환한다.)
-    result_info = dict(map(lambda item: (item[0], "") if item[1] is None else item, result_info.items()))
+    result_info = dict(map(lambda item: (item[0], "") if not item[1] else item, result_info.items()))
 
     return result_info
 

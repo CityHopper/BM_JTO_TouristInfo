@@ -19,7 +19,7 @@ def attraction_by_lonlat(lon, lat):
         'contentTypeId': '12',
         'mapX': lon,
         'mapY': lat,
-        'radius': '1000', # 반경 10km
+        'radius': '2000', # 반경 10km
         'listYN': 'Y',
         'modifiedtime': ''
     }
@@ -35,7 +35,7 @@ def attraction_by_lonlat(lon, lat):
         # print(item.find("title").text)
         # print(item.find("addr1").text)
 
-    howmany = 3 # 추천할 관광지 개수
+    howmany = 5 # 추천할 관광지 개수
     if len(recommended_attraction) >= howmany:
         recommended_attraction = recommended_attraction[0:howmany]
     elif len(recommended_attraction) == 0:
