@@ -133,6 +133,7 @@ dmypy.json
 config.ini
 data_out/check_point/
 *.ipynb
+<<<<<<< HEAD
 tour-chatbot-telegram - Staging/data_out/check_point/model.ckpt-20000.meta
 tour-chatbot-telegram - Staging/data_out/check_point/model.ckpt-20000.index
 tour-chatbot-telegram - Staging/data_out/check_point/model.ckpt-20000.data-00000-of-00001
@@ -167,3 +168,6 @@ tour-chatbot-telegram - Staging/data_out/data_out.zip
 tour-chatbot-telegram - Staging/data_out/data_out.z01
 tour-chatbot-telegram - Staging/data_out/vocabularyData.voc
 tour-chatbot-telegram - Product/train.py
+=======
+tour-chatbot-telegram - Staging/data_out/
+>>>>>>> fb55753a31a2b24afbf4e0097be452f8a504f6e0
