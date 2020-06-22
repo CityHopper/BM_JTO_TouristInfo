@@ -125,12 +125,12 @@ def get_weather(msg):
 
     today_gubun = "오늘 " if weather_info["BASE_DATETIME"][:13] == weather_info["FORECAST_DATETIME"][:13] else "내일 "
     
-    result_msg = "\n\n기상청에서 " + weather_info["BASE_DATETIME"] + "에 발표한 \n" + today_gubun + weather_info["FORECAST_DATETIME"][-7:] + " 기준 예보입니다.\n"
+    result_msg = "\n\n기상청에서 " + weather_info["BASE_DATETIME"] + "에 발표한 " + today_gubun + weather_info["FORECAST_DATETIME"][-7:] + " 기준 예보입니다.\n"
     result_msg += "제주시 " if city_gubun == "J" else "서귀포시 날씨는 "
     result_msg += "하늘은 '" + weather_info["SKY_TEXT"] + "' 입니다. "
     result_msg += "\n" + weather_info["PTY_TEXT"] + "가(이) 내릴 가능성이 있습니다. " if weather_info["PTY"] != "0" else ""
     result_msg += "\n기온은 " + str(weather_info["T3H"]) + "'C, 습도는 " + str(weather_info["REH"]) + "% 입니다. "
-    result_msg += "강수확률은 " + str(weather_info["POP"]) + "% 입니다."
+    result_msg += "\n강수확률은 " + str(weather_info["POP"]) + "% 입니다."
 
     print(result_msg)
 

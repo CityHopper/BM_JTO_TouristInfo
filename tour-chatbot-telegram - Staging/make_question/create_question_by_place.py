@@ -1,11 +1,11 @@
 """
 create_question_by_place.py
-
 db에 저장된 관광지명과 base질문을 기준으로 관광지별 질문을 db에 입력한다.
 tour_place X base_question -> question테이블
 """
 import pymysql
 from configparser import ConfigParser
+from tqdm import tqdm
 
 # 설정파일 로드(/config.ini)
 conf = ConfigParser()
@@ -40,8 +40,8 @@ def insert_question_list(question_list):
         sql = "INSERT INTO question({}) VALUES ({})".format(", ".join(question_list[0].keys()), ", ".join(["%s"] * len(question_list[0])))
         result_cnt = cur.executemany(sql, insert_list)
 
-        print(" * sql >> ", sql)
-        print(" * data >> \n", insert_list)
+     #   print(" * sql >> ", sql)
+     #   print(" * data >> \n", insert_list)
 
     DB_CONN.commit()
 
@@ -83,33 +83,38 @@ try:
 
     cnt = 0  # 생성된 질문개수
 
-    for base in base_question_list:
+    for base in tqdm(base_question_list):
         org_question_text = base["q_text"]
 
-        for place in place_list:
-            place_question_list = []
+        if "@" not in org_question_text:
+            insert_question_list([base])
+            cnt += 1
 
-            base_cp = base.copy()
-            base_cp["content_id"] = place["content_id"]
+        else:
+            for place in place_list:
+                place_question_list = []
 
-            if place["title1"] != "":
-                base_cp["title"] = place["title1"]
-                base_cp["q_text"] = org_question_text.replace("@", place["title1"])
+                base_cp = base.copy()
+                base_cp["content_id"] = place["content_id"]
 
-                place_question_list.append(base_cp)
+                if place["title1"]:
+                    base_cp["title"] = place["title1"]
+                    base_cp["q_text"] = org_question_text.replace("@", place["title1"])
 
-            if place["title2"] != "":
-                base_cp2 = base_cp.copy()
-                base_cp2["title"] = place["title2"]
-                base_cp2["q_text"] = org_question_text.replace("@", place["title2"])
+                    place_question_list.append(base_cp)
 
-                place_question_list.append(base_cp2)
+                if place["title2"]:
+                    base_cp2 = base_cp.copy()
+                    base_cp2["title"] = place["title2"]
+                    base_cp2["q_text"] = org_question_text.replace("@", place["title2"])
 
-            new_cnt = insert_question_list(place_question_list)
+                    place_question_list.append(base_cp2)
 
-            # 신규 입력 건이 있을 경우
-            if new_cnt > 0:
-                cnt += new_cnt
+                new_cnt = insert_question_list(place_question_list)
+
+                # 신규 입력 건이 있을 경우
+                if new_cnt > 0:
+                    cnt += new_cnt
 
     print("생성된 질문개수 :", cnt)
 
