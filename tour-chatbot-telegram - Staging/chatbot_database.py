@@ -1,6 +1,5 @@
 """
 chatbot_database.py
-
 Database 연결 및 query 실행
 """
 import traceback
