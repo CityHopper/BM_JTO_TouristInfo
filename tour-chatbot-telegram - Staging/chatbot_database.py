@@ -16,14 +16,18 @@ conf.read("./config.ini")
 def connect():
     db_conf = conf["DB"] # 데이터베이스 정보 불러오기
 
-    conn = pymysql.connect(host=db_conf["HOST"],
-                           port=int(db_conf["PORT"]),
-                           user=db_conf["USER"],
-                           password=db_conf["PASSWORD"],
-                           db=db_conf["DB_NAME"],
-                           charset='utf8mb4',
-                           use_unicode=True,
-                           cursorclass=pymysql.cursors.DictCursor)
+    try:
+        conn = pymysql.connect(host=db_conf["HOST"],
+                               port=int(db_conf["PORT"]),
+                               user=db_conf["USER"],
+                               password=db_conf["PASSWORD"],
+                               db=db_conf["DB_NAME"],
+                               charset='utf8mb4',
+                               use_unicode=True,
+                               cursorclass=pymysql.cursors.DictCursor)
+
+    except:
+        traceback.print_exc()
 
     return conn
 
