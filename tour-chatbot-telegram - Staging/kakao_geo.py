@@ -17,7 +17,8 @@ def getlonlat(keyword):
     results = result_json['documents'][0]
     lon = results.get('x') # 경도
     lat = results.get('y') # 위도
+    place_name = results.get('place_name')
 
-    return lon, lat
+    return lon, lat, place_name
 
 #print(getlonlat("아트센터"))

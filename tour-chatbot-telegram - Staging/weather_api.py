@@ -41,19 +41,13 @@ def weather_today(city_gubun):
                 if item["baseDate"] == today:
                     weather_dict[item["category"]] = item["fcstValue"]
 
-            # 강수형태 문자형으로
+            # 강수형태 문자형으로 : 없음(0), 비(1), 비/눈(2), 눈(3), 소나기(4)
             precipitation_type = {"0": "없음", "1": "비", "2": "비 또는 눈", "3": "눈", "4": "소나기"}  # 강수형태 정의
             weather_dict["PTY_TEXT"] = precipitation_type[weather_dict["PTY"]]
 
-            # 하늘상태 문자형으로
-            sky = int(weather_dict["SKY"])
-
-            if 0 <= sky <= 5:
-                weather_dict["SKY_TEXT"] = "맑음"
-            elif 6 <= sky <= 8:
-                weather_dict["SKY_TEXT"] = "구름많음"
-            elif 9 <= sky <= 10:
-                weather_dict["SKY_TEXT"] = "흐림"
+            # 하늘상태 문자형으로 : 맑음(1), 구름많음(3), 흐림(4)
+            sky_type = {"1" : "맑음", "3" : "구름많음", "4" : "흐림"}
+            weather_dict["SKY_TEXT"] = sky_type[weather_dict["SKY"]]
 
             # pop = int(result[result['category'] == 'POP']['fcstValue']) # 강수확률(%)
             # pty = int(result[result['category'] == 'PTY']['fcstValue']) # 강수형태 [없음(0), 비(1), 비/눈(2), 눈(3), 소나기(4)]
