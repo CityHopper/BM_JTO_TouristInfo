@@ -115,8 +115,9 @@ def get_text_message(message):
 
     # 날씨 질문이거나 날씨 관련한 관광지 추천 질문 구분
     if not result:
-        word_in_weather = ["날씨", "더워", "추워", "더운", "추운", "습한", "습해", "찜찜", "비내", "비오", "비와", "비가", "눈내", "눈와", "눈오", "눈이", "기상", "오늘"]  # 날씨 관련 질문 공통단어
-        word_in_WR = ["추천", "관광지", "볼거리", "관광", "볼거", "구경", "관람", "갈데", "곳", "장소", "명소", "유명"]
+        word_in_weather = ["날씨", "더워", "추워", "더운", "추운", "습한", "습해", "찜찜", "찝찝", "비내", "비오", "비와", "비가", "눈내", "눈와", "눈오", "눈이", "기상", "오늘"]  # 날씨 관련 질문 공통단어
+        word_in_WR = ["추천", "관광지", "구경", "갈데", "명소", "유명", "갈만"]
+        word_in_WR2 = ["어디", "곳", "장소", "관람", "볼거리", "볼거"] # 모델에서도 읽히는 단어 예외적으로 정의
         
         # 날씨 기반 관광지 추천
         for word2 in word_in_WR:
@@ -129,7 +130,12 @@ def get_text_message(message):
             for word in word_in_weather:
                 if word in txt_message_without_whitespace:
                     result = "WT"
-                    break
+
+                    # 질문에 날씨+장소를 묻는 질문인 경우 ex) 날씨가 더운데 어디갈까?
+                    for word_WR in word_in_WR2:
+                        if word_WR in txt_message_without_whitespace:
+                            result = "WR"
+                            break
 
     if not result:
         # 질문에서 관광지명, 질문키워드(분류) 예측
