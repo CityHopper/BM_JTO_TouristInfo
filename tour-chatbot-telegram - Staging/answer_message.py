@@ -77,18 +77,18 @@ def get_place_info(place_name, question_keyword):
 
 # 위치기반 관광지 추천(근처 관광지)
 def get_location_based_place(place_name):
-    lon, lat = kakao_geo.getlonlat(place_name)  # 경도, 위도
+    lon, lat, kakao_place_name = kakao_geo.getlonlat(place_name)  # 경도, 위도
 
     place_list = locbased_attrac.attraction_by_lonlat(lon, lat)
 
     if not place_list:
-        return place_name + " 근처 반경 20km 내에 관광지가 없습니다."
+        return kakao_place_name + " 기준 반경 20km 내에 관광지가 없습니다."
 
     else:
-        result_msg = "'" + place_name + "' 근처 반경 20km내 관광지입니다.\n"
+        result_msg = "'" + kakao_place_name + "' 기준 반경 20km내 관광지입니다.\n\n"
 
         for idx, place in enumerate(place_list):
-            result_msg += str(idx+1) + ". " + place[0] + " (" + place[1] + ")\n"
+            result_msg += str(idx+1) + ". " + place[0] + "\n- " + place[1] + "\n"
 
     return result_msg
 
@@ -112,7 +112,7 @@ def get_weather_based_place():
         result_msg += "다음 관광지들을 추천합니다.\n\n"
 
         for idx, place in enumerate(place_list):
-            result_msg += str(idx+1) + ". " + place["title"] + "("+place["category"] +")\n" + place["full_address"] + "\n"
+            result_msg += str(idx+1) + ". " + place["title"] + "("+place["category"] +")\n- " + place["full_address"] + "\n"
 
     return result_msg
 

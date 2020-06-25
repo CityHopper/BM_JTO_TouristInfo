@@ -101,28 +101,41 @@ def get_message_handler(bot, update):
 # 일반 텍스트 메시지
 def get_text_message(message):
     txt_message = message.text
+    txt_message_without_whitespace = txt_message.replace(" ", "") # 사용자 질문에서 모든 공백제거
     result = ""
-
+    
+    # 근처 관광지 추천 질문 구분
     word_in_RC = ["근처", "가까운", "가까이", "옆에", "주위"]
 
     for word in word_in_RC:
-        if word in txt_message.replace(" ", ""):
-            place_name = txt_message.split(word)[0].strip()
+        if word in txt_message_without_whitespace:
+            place_name = txt_message_without_whitespace[:txt_message_without_whitespace.index(word)]
             result = "RC " + place_name
+            break
 
+    # 날씨 질문이거나 날씨 관련한 관광지 추천 질문 구분
     if not result:
-        word_in_weather = ["날씨", "더워", "추워", "더운", "추운", "습한", "습해", "찜찜", "비내", "비오", "비와", "비가", "눈내", "눈와", "눈오", "눈이", "기상"]  # 날씨 관련 질문 공통단어
-        word_in_WR = ["추천", "어디", "관광지", "볼거리", "관광", "볼거", "구경", "관람", "체험", "갈데", "곳", "장소", "명소", "유명"]
+        word_in_weather = ["날씨", "더워", "추워", "더운", "추운", "습한", "습해", "찜찜", "찝찝", "비내", "비오", "비와", "비가", "눈내", "눈와", "눈오", "눈이", "기상", "오늘"]  # 날씨 관련 질문 공통단어
+        word_in_WR = ["추천", "관광지", "구경", "갈데", "명소", "유명", "갈만"]
+        word_in_WR2 = ["어디", "곳", "장소", "관람", "볼거리", "볼거"] # 모델에서도 읽히는 단어 예외적으로 정의
+        
+        # 날씨 기반 관광지 추천
+        for word2 in word_in_WR:
+            if word2 in txt_message_without_whitespace:
+                result = "WR"
+                break
+        
+        # 날씨 정보
+        if not result:
+            for word in word_in_weather:
+                if word in txt_message_without_whitespace:
+                    result = "WT"
 
-        for word in word_in_weather:
-            if word in txt_message.replace(" ", ""):
-                txt_weather_messsge = txt_message.replace(" ", "")
-
-                result = "WT"
-
-                for word2 in word_in_WR:
-                    if word2 in txt_weather_messsge:
-                        result = "WR"
+                    # 질문에 날씨+장소를 묻는 질문인 경우 ex) 날씨가 더운데 어디갈까?
+                    for word_WR in word_in_WR2:
+                        if word_WR in txt_message_without_whitespace:
+                            result = "WR"
+                            break
 
     if not result:
         # 질문에서 관광지명, 질문키워드(분류) 예측
@@ -157,7 +170,15 @@ def get_text_message(message):
 
     except Exception as e:
         traceback.print_exc()
-        return "제가 이해할 수 없는 질문입니다.\n다른 질문해주세요!"
+
+        return "제가 이해할 수 없는 질문이에요. 다른 질문을 해주시겠어요?" \
+               "\n\n예시)"\
+               "\n- 삼성혈 위치"\
+               "\n- 오늘 날씨 어때"\
+               "\n- 천지연폭포 유모차 대여 되나요?"\
+               "\n- 제주시청 근처 관광지 (장소명)"\
+               "\n- 광양9길10 근처 관광지 (주소)"\
+               "\n- 관광지 추천해주세요!"
 
 
 # start command 메시지(/start) *대화방 대화 시작 시 자동실행
@@ -165,7 +186,16 @@ def call_start_command(message):
     user_name = message.chat.last_name + " " + message.chat.first_name
     print(user_name + "님 새로운 대화 시작")
 
-    return {"text" : user_name + "님 안녕하세요.\n대화창에 제주 관광지에 대한 질문을 입력해주세요."}
+    return {"text" : user_name + "님 안녕하세요."
+                                 "\n대화창에 제주 관광지에 대한 궁금한 것을 입력해주세요."
+                                 "\n\n예시)"
+                                 "\n- 삼성혈 위치"
+                                 "\n- 오늘 날씨 어때"
+                                 "\n- 천지연폭포 유모차 대여 되나요?"
+                                 "\n- 제주시청 스타벅스 근처 관광지 (장소명)"
+                                 "\n- 광양9길10 근처 관광지 (주소)"
+                                 "\n- 관광지 추천해주세요!"
+            }
 
 
 # command 메시지 callback
